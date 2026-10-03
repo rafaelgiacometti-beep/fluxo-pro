@@ -96,7 +96,7 @@ function recordDetail(kind,id) {
   openDialog(isSale?'Detalhes da venda':'Detalhes da encomenda',`<div class="details-grid"><div><span>${isSale?'Cliente':'Fornecedor'}</span><strong>${esc(isSale?getCustomer(r.customer_id).name:r.supplier)}</strong></div><div><span>Produto</span><strong>${esc(getProduct(r.product_id).name)}</strong></div><div><span>Quantidade</span><strong>${r.quantity} unidades${!isSale?` · ${r.received} recebidas`:''}</strong></div><div><span>Data do pedido</span><strong>${dateLabel(r.ordered_at)}</strong></div><div><span>Total</span><strong>${money(totalFor(r))}</strong></div><div><span>${isSale?'Recebido':'Pago'}</span><strong>${money(paidFor(state,kind,id))}</strong></div><div><span>Em falta</span><strong>${money(due)}</strong></div><div><span>${isSale?'Entrega':'Chegada prevista'}</span><strong>${isSale?r.status==='cancelled'?'Cancelada':dateLabel(r.delivered_at):dateLabel(r.expected_at)}</strong></div>${isSale&&r.followup_at?`<div><span>Próxima encomenda</span><strong>${dateLabel(r.followup_at)}</strong></div>`:''}</div>${r.note?`<p class="note">${esc(r.note)}</p>`:''}<h3>Pagamentos</h3>${payments.length?payments.map(p=>`<div class="alert-row" style="padding:10px 0"><div><strong>${money(p.amount_cents)}</strong><p>${dateLabel(p.paid_at)} · ${esc(p.method)}</p></div></div>`).join(''):'<p class="muted small">Sem pagamentos registados.</p>'}<div class="actions" style="margin-top:20px">${actions.join('')}</div>`,button('Fechar','close'));
 }
 function customerDetail(id){const c=getCustomer(id),sales=state.sales.filter(x=>x.customer_id===id);openDialog('Histórico do cliente',`<h3>${esc(c.name)}</h3><p class="muted">${esc(c.phone||'Sem contacto')}</p>${c.note?`<p class="note">${esc(c.note)}</p>`:''}${button('Editar cliente','customer-form',id,'small')}<h3 style="margin-top:23px">Vendas</h3>${sales.length?table(['Data','Produto','Total',''],sales.map(r=>`<tr><td>${dateLabel(r.ordered_at)}</td><td>${esc(getProduct(r.product_id).name)}</td><td>${money(totalFor(r))}</td><td>${button('Ver','sale-detail',r.id,'small')}</td></tr>`)):'<p class="muted small">Sem vendas registadas.</p>'}`,button('Fechar','close'));}
-function updateTotal(){const form=$('#sale-form')||$('#purchase-form');if(!form)return;const node=$('#form-total');try{const total=Number(form.elements.quantity.value)*cents(form.elements.unit.value);node.innerHTML=`Total da ${form.id==='sale-form'?'venda':'encomenda'}<strong>${money(total)}</strong>`;}catch{node.textContent='Preencha a quantidade e o preço para calcular o total.';}}
+function updateTotal(){const form=$('#sale-form')||$('#purchase-form');if(!form)return;const node=$('#form-total');try{const total=Number(form.elements.quantity.value)*cents(form.elements.unit.value);node.innerHTML=`Total da ${form.getAttribute('id')==='sale-form'?'venda':'encomenda'}<strong>${money(total)}</strong>`;}catch{node.textContent='Preencha a quantidade e o preço para calcular o total.';}}
 async function refresh(silent=false){if(!api||busy)return;try{state=await api.snapshot();lastSync=new Date();syncError='';if(!modal.open)shell();}catch(e){syncError=e.message;if(api.mode==='cloud'&&!api.session){api=null;state=emptyState();entry(e.message);}else if(!silent||!modal.open)shell();}}
 async function commit(form,kind,payload){
   if(busy)return;busy=true;const controls=[...form.querySelectorAll('button')];controls.forEach(b=>b.disabled=true);const error=form.querySelector('.form-error');error.textContent='';
@@ -106,15 +106,17 @@ async function commit(form,kind,payload){
 }
 document.addEventListener('submit',async event=>{
   event.preventDefault();const form=event.target;const p=Object.fromEntries(new FormData(form));
-  if(form.id==='login-form'){
+  // Um campo name="id" sobrepõe form.id nos formulários HTML.
+  const formId=form.getAttribute('id');
+  if(formId==='login-form'){
     if(busy)return;busy=true;const b=form.querySelector('button');b.disabled=true;form.querySelector('.form-error').textContent='';
     try{const online=new CloudAPI(config);await online.login(p.email,p.password);const snapshot=await online.snapshot();api=online;state=snapshot;lastSync=new Date();syncError='';shell();}catch(e){form.querySelector('.form-error').textContent=e.message;}finally{busy=false;b.disabled=false;}return;
   }
-  if(form.id==='connection-form'){
+  if(formId==='connection-form'){
     try{config=validateConfig(p.url.trim(),p.key.trim());localStorage.setItem('fluxo-config-v1',JSON.stringify(config));modal.close();entry();notify('Ligação guardada. Entre na sua conta.');}catch(e){form.querySelector('.form-error').textContent=e.message;}return;
   }
   try{
-    let kind=form.id.replace('-form','');let payload=p;
+    let kind=formId.replace('-form','');let payload=p;
     if(kind==='product')payload={id:p.id||null,name:p.name,sku:p.sku,price_cents:cents(p.price),cost_cents:cents(p.cost),minimum:Number(p.minimum),lead_days:Number(p.lead_days),initial:Number(p.initial||0),active:p.active!=='false'};
     if(kind==='customer')payload={...p,id:p.id||null,active:p.active!=='false'};
     if(kind==='sale'||kind==='purchase')payload={...p,quantity:Number(p.quantity),unit_cents:cents(p.unit),allow_backorder:p.allow_backorder==='on'};
@@ -133,8 +135,8 @@ document.addEventListener('change',event=>{
   if(event.target.id==='filter'){filter=event.target.value;shell();}
   if(event.target.name==='product_id'){
     const form=event.target.closest('form'),p=getProduct(event.target.value);if(!p.id)return;
-    if(form?.id==='sale-form')form.elements.unit.value=(p.price_cents/100).toFixed(2);
-    if(form?.id==='purchase-form'){form.elements.unit.value=(p.cost_cents/100).toFixed(2);const date=new Date(form.elements.ordered_at.value+'T12:00:00');date.setDate(date.getDate()+p.lead_days);form.elements.expected_at.value=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;}
+    if(form?.getAttribute('id')==='sale-form')form.elements.unit.value=(p.price_cents/100).toFixed(2);
+    if(form?.getAttribute('id')==='purchase-form'){form.elements.unit.value=(p.cost_cents/100).toFixed(2);const date=new Date(form.elements.ordered_at.value+'T12:00:00');date.setDate(date.getDate()+p.lead_days);form.elements.expected_at.value=`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;}
     updateTotal();
   }
 });
