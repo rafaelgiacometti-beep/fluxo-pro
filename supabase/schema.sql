@@ -1,4 +1,4 @@
--- Fluxo Pro v1. Execute uma vez no SQL Editor de um projeto Supabase novo.
+-- Medical R.G. v1. Execute uma vez no SQL Editor de um projeto Supabase novo.
 -- Registos separados por auth.uid(); sem escrita direta pela API.
 begin;
 
@@ -51,7 +51,7 @@ create table public.fluxo_payments (
 create index on public.fluxo_payments(owner_id,kind,record_id);
 create table public.fluxo_settings (
  owner_id uuid primary key references auth.users(id) on delete cascade,
- name text not null default 'Fluxo Pro' check(length(trim(name)) between 1 and 160), reminder_days integer not null default 5 check(reminder_days between 0 and 30)
+ name text not null default 'Medical R.G.' check(length(trim(name)) between 1 and 160), reminder_days integer not null default 5 check(reminder_days between 0 and 30)
 );
 create table public.fluxo_requests (
  owner_id uuid not null references auth.users(id) on delete cascade, id uuid not null, created_at timestamptz not null default now(), primary key(owner_id,id)
@@ -80,7 +80,7 @@ begin
   'sales',coalesce((select jsonb_agg(to_jsonb(x)-'owner_id' order by x.created_at,x.id) from fluxo_sales x where owner_id=u),'[]'::jsonb),
   'movements',coalesce((select jsonb_agg(to_jsonb(x)-'owner_id' order by x.created_at,x.id) from fluxo_movements x where owner_id=u),'[]'::jsonb),
   'payments',coalesce((select jsonb_agg(to_jsonb(x)-'owner_id' order by x.created_at,x.id) from fluxo_payments x where owner_id=u),'[]'::jsonb),
-  'settings',coalesce((select to_jsonb(x)-'owner_id' from fluxo_settings x where owner_id=u),'{"name":"Fluxo Pro","reminder_days":5}'::jsonb),
+  'settings',coalesce((select to_jsonb(x)-'owner_id' from fluxo_settings x where owner_id=u),'{"name":"Medical R.G.","reminder_days":5}'::jsonb),
   'requests','[]'::jsonb
  ) into result;
  return result;

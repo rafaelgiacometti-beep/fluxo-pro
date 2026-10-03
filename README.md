@@ -1,4 +1,4 @@
-# Fluxo Pro
+# Medical R.G.
 
 PWA para gestão comercial de produtos de venda autorizada. Interface em português, valores em euros e sincronização entre dispositivos através da mesma conta Supabase. O frontend pode ser alojado no GitHub Pages sem dependências ou compilação.
 

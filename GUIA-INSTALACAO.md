@@ -1,4 +1,4 @@
-# Instalar o Fluxo Pro
+# Instalar o Medical R.G.
 
 ## 1. Preparar a base de dados
 
@@ -18,7 +18,7 @@ O frontend usa a API REST; confirme que a Data API está ativa e o esquema `publ
 3. A forma mais simples de publicar é **Settings → Pages → Build and deployment → Source: Deploy from a branch → Branch: main → Folder: /docs → Save**.
 4. Aguarde a publicação. O endereço será `https://SEU-UTILIZADOR.github.io/fluxo-pro/`.
 
-Também existe o ficheiro `.github/workflows/pages.yml` para publicação com GitHub Actions e execução dos testes. Para usar esse método, escolha **Source: GitHub Actions** em vez de **Deploy from a branch** e execute **Actions → Publicar Fluxo Pro → Run workflow**. Use apenas um dos métodos. Dependendo do plano GitHub, Pages num repositório privado pode não estar disponível; o código pode ser público sem expor os dados privados, que ficam no Supabase.
+Também existe o ficheiro `.github/workflows/pages.yml` para publicação com GitHub Actions e execução dos testes. Para usar esse método, escolha **Source: GitHub Actions** em vez de **Deploy from a branch** e execute **Actions → Publicar Medical R.G. → Run workflow**. Use apenas um dos métodos. Dependendo do plano GitHub, Pages num repositório privado pode não estar disponível; o código pode ser público sem expor os dados privados, que ficam no Supabase.
 
 ### Ligação online
 

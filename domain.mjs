@@ -21,7 +21,7 @@ export function stockFor(s,id) {
 export function paidFor(s,kind,id) {return s.payments.filter(x=>x.kind===kind&&x.record_id===id).reduce((n,x)=>n+x.amount_cents,0);}
 export function totalFor(row) {return row.quantity*row.unit_cents;}
 export function dueFor(s,kind,row) {return totalFor(row)-paidFor(s,kind,row.id);}
-export function emptyState() {return {products:[],customers:[],purchases:[],sales:[],payments:[],movements:[],settings:{name:'Fluxo Pro',reminder_days:5},requests:[]};}
+export function emptyState() {return {products:[],customers:[],purchases:[],sales:[],payments:[],movements:[],settings:{name:'Medical R.G.',reminder_days:5},requests:[]};}
 const integer=(n,min=1)=>{n=Number(n);if(!Number.isInteger(n)||n<min||n>100000000)throw Error('Quantidade ou valor inválido.');return n;};
 const label=(v)=>{v=String(v||'').trim();if(!v||v.length>160)throw Error('Preencha um nome com até 160 caracteres.');return v;};
 const date=(v)=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(v||'')||Number.isNaN(Date.parse(v+'T12:00:00Z'))||new Date(v+'T12:00:00Z').toISOString().slice(0,10)!==v)throw Error('Data inválida.');return v;};
